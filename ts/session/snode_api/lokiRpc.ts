@@ -6,6 +6,8 @@ import { Snode } from './snodePool';
 import { lokiOnionFetch, SnodeResponse } from './onions';
 import { sendToProxy } from './proxy';
 
+import { maybeResolveSNodeURL } from '../../llarp/utils/snode';
+
 const snodeHttpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
@@ -40,6 +42,7 @@ async function lokiPlainFetch(
 
 interface FetchOptions {
   method: string;
+  lokinet: boolean;
 }
 
 // A small wrapper around node-fetch which deserializes response
@@ -59,12 +62,14 @@ async function lokiFetch(
   };
 
   try {
+    if (options.lokinet && targetNode) {
+      return await lokiPlainFetch(url, fetchOptions);
+    }
     // Absence of targetNode indicates that we want a direct connection
     // (e.g. to connect to a seed node for the first time)
     if (window.lokiFeatureFlags.useOnionRequests && targetNode) {
       return await lokiOnionFetch(fetchOptions.body, targetNode);
     }
-
     if (window.lokiFeatureFlags.useSnodeProxy && targetNode) {
       return await sendToProxy(fetchOptions, targetNode);
     }
@@ -85,8 +90,11 @@ export async function snodeRpc(
   params: any,
   targetNode: Snode
 ): Promise<boolean | SnodeResponse> {
-  const url = `https://${targetNode.ip}:${targetNode.port}/storage_rpc/v1`;
-
+  const result = await maybeResolveSNodeURL(
+    'https',
+    targetNode,
+    '/storage_rpc/v1'
+  );
   // TODO: The jsonrpc and body field will be ignored on storage server
   if (params.pubKey) {
     // Ensure we always take a copy
@@ -104,6 +112,7 @@ export async function snodeRpc(
   };
 
   const fetchOptions = {
+    lokinet: result.hasLokinet,
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
@@ -111,5 +120,5 @@ export async function snodeRpc(
     },
   };
 
-  return lokiFetch(url, fetchOptions, targetNode);
+  return lokiFetch(result.url, fetchOptions, targetNode);
 }
