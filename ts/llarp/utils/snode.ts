@@ -29,7 +29,7 @@ export async function maybeResolveSNodeURL(
   let result = { url: '', hasLokinet: lokinet };
   if (lokinet) {
     const addr = await resolveSnodeAddress(snode);
-    result.url = `{proto}://{addr}:{snode.port}{path}`;
-  } else result.url = `{proto}://{snode.ip}:{snode.port}{path}`;
+    result.url = `${proto}://${addr}:${snode.port}${path}`;
+  } else result.url = `${proto}://${snode.ip}:${snode.port}${path}`;
   return result;
 }
