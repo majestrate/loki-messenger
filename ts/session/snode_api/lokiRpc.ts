@@ -83,6 +83,12 @@ async function lokiFetch(
   }
 }
 
+/// do a GET request to a snode maybe via lokinet
+export async function snodeFetch(snode: Snode, path: string): Promise<any> {
+  const result = await maybeResolveSNodeURL('https', snode, path);
+  return fetch(result.url, { agent: snodeHttpsAgent });
+}
+
 // Wrapper for a JSON RPC request
 // Annoyngly, this is used for Lokid requests too
 export async function snodeRpc(

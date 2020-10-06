@@ -1,18 +1,22 @@
 const { Resolver } = require('dns').promises;
 
-import { Snode } from '../../session/snode_api/snodePool';
-
 const getLokinetDNSAddress = (): string => {
   if (process.platform === 'linux') return '127.3.2.1';
   else return '127.0.0.1';
 };
 
-const lokinetResolver = new Resolver({ timeout: 50 });
-lokinetResolver.setServers([getLokinetDNSAddress()]);
+const servers = [getLokinetDNSAddress()];
+
+const fastLokinetResolver = new Resolver({ timeout: 50 });
+fastLokinetResolver.setServers(servers);
+
+const lokinetResolver = new Resolver();
+lokinetResolver.setServers(servers);
+
 
 /// return true if we detect we have lokinet locally
 export function hasLokinet(): Promise<boolean> {
-  const result = lokinetResolver.resolve('localhost.loki');
+  const result = fastLokinetResolver.resolve('localhost.loki');
 
   let lokinetPromise = new Promise<boolean>((resolve: any, reject: any) => {
     result

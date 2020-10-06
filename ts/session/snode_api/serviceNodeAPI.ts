@@ -3,7 +3,7 @@
 import https from 'https';
 import fetch from 'node-fetch';
 
-import { snodeRpc } from './lokiRpc';
+import { snodeRpc, snodeFetch } from './lokiRpc';
 import { sendOnionRequestLsrpcDest, SnodeResponse } from './onions';
 
 import { sleepFor } from '../../../js/modules/loki_primitives';
@@ -31,9 +31,7 @@ export async function getVersion(
 
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    const result = await fetch(`https://${node.ip}:${node.port}/get_stats/v1`, {
-      agent: snodeHttpsAgent,
-    });
+    const result = await snodeFetch(node, '/get_stats/v1');
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
     const data = await result.json();
     if (data.version) {

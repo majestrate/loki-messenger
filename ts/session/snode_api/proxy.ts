@@ -4,6 +4,7 @@ import https from 'https';
 import * as SnodePool from './snodePool';
 import { sleepFor } from '../../../js/modules/loki_primitives';
 import { SnodeResponse } from './onions';
+import { maybeResolveSNodeURL } from '../../llarp/utils/snode';
 import _ from 'lodash';
 
 const snodeHttpsAgent = new https.Agent({
@@ -235,7 +236,8 @@ export async function sendToProxy(
   }
 
   // Don't allow arbitrary URLs, only snodes and loki servers
-  const url = `https://${randSnode.ip}:${randSnode.port}/proxy`;
+  const snodeURL = await maybeResolveSNodeURL('https', randSnode, '/proxy');
+  const url = snodeURL.url;
 
   const snPubkeyHex = StringView.hexToArrayBuffer(targetNode.pubkey_x25519);
 

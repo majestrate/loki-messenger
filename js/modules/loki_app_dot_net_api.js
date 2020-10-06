@@ -7,6 +7,7 @@ const FormData = require('form-data');
 const https = require('https');
 const path = require('path');
 const dataMessage = require('../../ts/receiver/dataMessage');
+const {maybeResolveSNodeURL} = require('../../ts/llarp/utils/snode');
 
 // Can't be less than 1200 if we have unauth'd requests
 const PUBLICCHAT_MSG_POLL_EVERY = 1.5 * 1000; // 1.5s
@@ -240,7 +241,8 @@ const sendToProxy = async (srvPubKey, endpoint, fetchOptions, options = {}) => {
     await timeoutDelay(1000);
     return sendToProxy(srvPubKey, endpoint, fetchOptions, options);
   }
-  const url = `https://${randSnode.ip}:${randSnode.port}/file_proxy`;
+  const snodeResult = maybeResolveSNodeURL("https", randSnode, "/file_proxy");
+  const url = snodeResult.url;
 
   // convert our payload to binary buffer
   const payloadData = Buffer.from(

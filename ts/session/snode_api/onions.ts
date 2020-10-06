@@ -5,6 +5,7 @@ import { Snode } from './snodePool';
 import ByteBuffer from 'bytebuffer';
 import { StringUtils } from '../utils';
 import { OnionAPI } from '../onions';
+import { maybeResolveSNodeURL } from '../../llarp/utils/snode';
 
 enum RequestError {
   BAD_PATH,
@@ -347,8 +348,12 @@ const sendOnionRequest = async (
     // we are talking to a snode...
     agent: snodeHttpsAgent,
   };
-
-  const guardUrl = `https://${nodePath[0].ip}:${nodePath[0].port}/onion_req`;
+  const guardResult = await maybeResolveSNodeURL(
+    'https',
+    nodePath[0],
+    '/onion_req'
+  );
+  const guardUrl = guardResult.url;
   const response = await fetch(guardUrl, guardFetchOptions);
 
   return processOnionResponse(
